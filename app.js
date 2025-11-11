@@ -40,12 +40,18 @@ app.get("/", (req, res) => {
 const PORT = process.env.PORT || 8080;
 const HOST = "0.0.0.0";
 
-// --- START SERVER IMMEDIATELY ---
-app.listen(PORT, HOST, () => {
-  console.log(`🚀 Server is running on http://${HOST}:${PORT}`);
-});
+const startServer = async () => {
+  try {
+    await connectDb(); // ✅ wait for DB before starting server
+    console.log("✅ MongoDB connected successfully");
 
-// --- CONNECT DB IN BACKGROUND ---
-connectDb()
-  .then(() => console.log("✅ MongoDB connected successfully"))
-  .catch((err) => console.error("⚠️ MongoDB connection failed:", err.message));
+    app.listen(PORT, HOST, () => {
+      console.log(`🚀 Server is running on http://${HOST}:${PORT}`);
+    });
+  } catch (err) {
+    console.error("⚠️ MongoDB connection failed:", err.message);
+    process.exit(1); // stop the app if DB fails
+  }
+};
+
+startServer();
