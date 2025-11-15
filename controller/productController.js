@@ -7,6 +7,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+// CREATE PRODUCT CONTROLLER
 export const createProductController = async (req, res) => {
   try {
     const { name, description, price, category, quantity, bulkDiscounts } = req.fields;
@@ -36,12 +37,40 @@ export const createProductController = async (req, res) => {
         productFields.bulkDiscounts = [];
       }
     }
+    // Handle specifications
+    if (req.fields.specifications) {
+      try {
+        productFields.specifications = typeof req.fields.specifications === 'string'
+          ? JSON.parse(req.fields.specifications)
+          : req.fields.specifications;
+        console.log("Parsed specifications:", productFields.specifications);
+      } catch (e) {
+        console.log("Error parsing specifications:", e);
+        productFields.specifications = {};
+      }
+    } else {
+      productFields.specifications = {};
+    }
+    // Handle showSpecificationsTable
+    // FormData converts booleans to strings, so handle both cases
+    console.log("showSpecificationsTable from request:", req.fields.showSpecificationsTable, typeof req.fields.showSpecificationsTable);
+    if (req.fields.showSpecificationsTable !== undefined && req.fields.showSpecificationsTable !== null) {
+      const showTable = req.fields.showSpecificationsTable;
+      // Convert to boolean: true if 'true', true, or '1'; false otherwise
+      productFields.showSpecificationsTable = (showTable === 'true' || showTable === true || showTable === '1' || showTable === 1);
+      console.log("Parsed showSpecificationsTable:", productFields.showSpecificationsTable);
+    } else {
+      productFields.showSpecificationsTable = false;
+      console.log("showSpecificationsTable not provided, defaulting to false");
+    }
     const products = new productModel(productFields);
     if (photo) {
       products.photo.data = fs.readFileSync(photo.path);
       products.photo.contentType = photo.type;
     }
     await products.save();
+    console.log("Saved product with showSpecificationsTable:", products.showSpecificationsTable);
+    console.log("Saved product specifications:", products.specifications);
     res.status(201).send({
       success: true,
       message: "Product Created Successfully",
@@ -80,15 +109,37 @@ export const getProductController = async (req, res) => {
   }
 };
 // get single product
+// get single product controller
 export const getSingleProductController = async (req, res) => {
   try {
     const product = await productModel
       .findOne({ slug: req.params.slug })
       .populate("category");
+    console.log(
+      "Product fetched - showSpecificationsTable:",
+      product?.showSpecificationsTable
+    );
+    console.log("Product fetched - specifications:", product?.specifications);
+    // Normalize missing fields for older documents
+    let normalized = product ? product.toObject() : null;
+    if (normalized) {
+      if (
+        typeof normalized.showSpecificationsTable === "undefined" ||
+        normalized.showSpecificationsTable === null
+      ) {
+        normalized.showSpecificationsTable = false;
+      }
+      if (
+        typeof normalized.specifications === "undefined" ||
+        normalized.specifications === null
+      ) {
+        normalized.specifications = {};
+      }
+    }
     res.status(200).send({
       success: true,
       message: "Single Product Fetched",
-      product,
+      product: normalized,
     });
   } catch (error) {
     console.log(error);
@@ -134,10 +185,18 @@ export const deleteProductController = async (req, res) => {
     });
   }
 };
-
+//updateproduct controller
 export const updateProductController = async (req, res) => {
   try {
-    const { name, description, price, photo, category, quantity, bulkDiscounts } = req.fields;
+    const {
+      name,
+      description,
+      price,
+      photo,
+      category,
+      quantity,
+      bulkDiscounts,
+    } = req.fields;
     //Validation
     switch (true) {
       case !name:
@@ -164,6 +223,26 @@ export const updateProductController = async (req, res) => {
         updateFields.bulkDiscounts = [];
       }
     }
+    // Handle specifications
+    if (req.fields.specifications) {
+      try {
+        updateFields.specifications =
+          typeof req.fields.specifications === "string"
+            ? JSON.parse(req.fields.specifications)
+            : req.fields.specifications;
+      } catch (e) {
+        updateFields.specifications = {};
+      }
+    }
+    // Handle showSpecificationsTable
+    // FormData converts booleans to strings, so handle both cases
+    if (req.fields.showSpecificationsTable !== undefined) {
+      const showTable = req.fields.showSpecificationsTable;
+      // Convert to boolean: true if 'true', true, or '1'; false otherwise
+      updateFields.showSpecificationsTable =
+        showTable === "true" || showTable === true || showTable === "1";
+    }
+    // If not provided, don't update it (keep existing value)
     const products = await productModel.findByIdAndUpdate(
       req.params.pid,
       updateFields,
@@ -185,7 +264,6 @@ export const updateProductController = async (req, res) => {
     });
   }
 };
-
 export const searchController = async (req, res) => {
   try {
     let { keyword } = req.params;
@@ -225,7 +303,7 @@ export const relatedProductController = async (req, res) => {
         category: cid,
         _id: { $ne: pid },
       })
-    
+
       .limit(3)
       .populate("category");
 
