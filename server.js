@@ -12,10 +12,24 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors({
-  origin: ['http://localhost:5173', 'https://vision-frontend-m4a4.onrender.com','https://www.visiongifting.com'],
-  credentials: true // If you're using cookies or authentication
-}));
+// CORS configuration
+const corsOptions = {
+  origin: [
+    'http://localhost:5173',
+    'https://vision-frontend-m4a4.onrender.com',
+    'https://www.visiongifting.com'
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 204
+};
+
+// Apply CORS with the above options
+app.use(cors(corsOptions));
+
+// Handle preflight requests
+app.options('*', cors(corsOptions));
 // Only use express.urlencoded for parsing POST bodies
 app.use(express.urlencoded({ extended: true }));
 
