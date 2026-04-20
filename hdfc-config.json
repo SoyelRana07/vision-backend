@@ -1,9 +1,9 @@
 {
-    "API_KEY": "B33A377BBAD45EBBB95D1B127B7D1D",
-    "MERCHANT_ID": "55507",
-    "PAYMENT_PAGE_CLIENT_ID": "55507",
-    "BASE_URL": "https://smartgateway.hdfcbank.com",
+    "API_KEY":  process.env.API_KEY,
+    "MERCHANT_ID":process.env.MERCHANT_ID,
+    "PAYMENT_PAGE_CLIENT_ID":process.env.PAYMENT_PAGE_CLIENT_ID ,
+    "BASE_URL":process.env.BASE_URL,
     "ENABLE_LOGGING": true,
-    "LOGGING_PATH": "./logs/PaymentHandler.log",
-    "RESPONSE_KEY": "30F7DA88EC244C39FF3635807C9F44"
+    "LOGGING_PATH": process.env.LOGGING_PATH,
+    "RESPONSE_KEY": process.env.RESPONSE_KEY
 }
