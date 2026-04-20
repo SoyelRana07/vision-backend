@@ -14,14 +14,7 @@ This document explains the HDFC payment gateway integration that has been added 
   - HMAC signature validation
   - Comprehensive logging
 
-### 2. `hdfc-config.json`
-- **Location**: `Backend/hdfc-config.json`
-- **Purpose**: Configuration file for HDFC payment gateway
-- **Current Settings**:
-  - **Environment**: UAT (Sandbox)
-  - **Base URL**: `https://smartgatewayuat.hdfcbank.com`
-  - **Client ID**: `hdfcmaster` (demo configuration)
-  - **Merchant ID**: `SG3035`
+
 
 ## API Endpoints
 
